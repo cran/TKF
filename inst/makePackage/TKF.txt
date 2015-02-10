@@ -1,0 +1,92 @@
+gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c MathFunctions.c -o MathFunctions.o
+gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c matrix.c -o matrix.o
+gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c TKF91.c -o TKF91.o
+gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c TKF92.c -o TKF92.o
+gcc -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/usr/local/lib -o TKF.so MathFunctions.o  matrix.o  TKF91.o TKF92.o -L/usr/local/Cellar/gsl/1.16/lib -lgsl -lgslcblas -L/Users/gtan/src/R-devel/lib -lR -Wl,-framework -Wl,CoreFoundation
+
+R CMD BUILD  TKF
+R CMD INSTALL TKF_0.0.2.tar.gz
+R CMD check --as-cran TKF_0.0.2.tar.gz
+
+
+## Linux
+gcc -std=gnu99 -I/mnt/biggles/opt/R/R-3.1.2/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -DR_DIRICHLETMULTINOMIAL -fpic  -g -O2  -c MathFunctions.c -o MathFunctions.o
+gcc -std=gnu99 -I/mnt/biggles/opt/R/R-3.1.2/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -DR_DIRICHLETMULTINOMIAL -fpic  -g -O2  -c R_init_TKF.c -o R_init_TKF.o
+gcc -std=gnu99 -I/mnt/biggles/opt/R/R-3.1.2/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -DR_DIRICHLETMULTINOMIAL -fpic  -g -O2  -c matrix.c -o matrix.o
+gcc -std=gnu99 -I/mnt/biggles/opt/R/R-3.1.2/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -DR_DIRICHLETMULTINOMIAL -fpic  -g -O2  -c TKF91.c -o TKF91.o
+gcc -std=gnu99 -I/mnt/biggles/opt/R/R-3.1.2/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -DR_DIRICHLETMULTINOMIAL -fpic  -g -O2  -c TKF92.c -o TKF92.o
+gcc -std=gnu99 -shared -L/usr/local/lib64 -o TKF.so MathFunctions.o R_init_TKF.o TKF91.o TKF92.o matrix.o -L/usr/local/lib -lgsl -lgslcblas -lm
+
+R_stable CMD build  TKF
+R_stable CMD install TKF_0.0.2.tar.gz
+R_stable CMD check --as-cran TKF_0.0.2.tar.gz
+
+### Mac
+source("/Users/gtan/Repositories/Bitbucket/TKF/R/ScoringMatrix.R")
+source("/Users/gtan/Repositories/Bitbucket/TKF/R/TKF91.R")
+source("/Users/gtan/Repositories/Bitbucket/TKF/R/TKF92.R")
+load("/Users/gtan/Repositories/Bitbucket/TKF/data/GONNET.rda")
+load("/Users/gtan/Repositories/Bitbucket/TKF/data/GONNETBF.rda")
+dyn.load("/Users/gtan/Repositories/Bitbucket/TKF/src/TKF.so")
+
+### Linux
+source("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/R/ScoringMatrix.R")
+source("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/R/TKF91.R")
+source("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/R/TKF92.R")
+load("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/data/GONNET.rda")
+load("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/data/GONNETBF.rda")
+dyn.load("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/src/TKF.so")
+
+
+## Read fasta
+library(seqinr)
+library(numDeriv)
+fasta <- read.fasta(file="/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/inst/TestData/pair1.fasta" , seqtype="AA", set.attributes=FALSE)
+seq1 <- fasta[[1]]
+seq2 <- fasta[[2]]
+seq1Int <- AAToInt(seq1)
+seq2Int <- AAToInt(seq2)
+## for the C matrix index
+seq1Int <- seq1Int - 1L
+seq2Int <- seq2Int - 1L
+
+## 1D
+TKF91Pair(seq1, seq2, mu=5.920655e-04, substModel=GONNET, substModelBF=GONNETBF)
+TKF91(fasta, mu=5.920655e-04, substModel=GONNET, substModelBF=GONNETBF)
+## 2D
+TKF91Pair(seq1, seq2, substModel=GONNET, substModelBF=GONNETBF)
+TKF91(fasta)
+## pure likelihood
+TKF91Pair(seq1, seq2, mu=5.920655e-04, distance=116.3784767530, substModel=GONNET, substModelBF=GONNETBF)
+
+
+## TKF92 3D
+#ans <- .Call("TKF92LikelihoodFunction3DMainNM", seq1Int, seq2Int, expectedLength=362, substModel=GONNET, substModelBF= GONNETBF)
+expectedLength=362
+substModel=GONNET
+substModelBF=GONNETBF
+ans <- TKF92Pair(seq1, seq2, expectedLength=362, substModel=GONNET, substModelBF=GONNETBF)
+
+## TKF92 1D
+ans <- .Call("TKF92LikelihoodFunction1DMain", seq1Int, seq2Int, mu=5.920655e-04, r=0.8, expectedLength=362, substModel=GONNET, substModelBF= GONNETBF)
+
+
+
+
+TKF92Pair(seq1, seq2, mu=5.920655e-04, r=0.8, substModel=GONNET, substModelBF=GONNETBF)
+
+
+mu = 0.0013
+len = 362
+distance = 2
+lambda = len / (len + 1) * mu
+log1p(-exp((lambda-mu)*distance)) - (log(mu) + log1p(-lambda/mu * exp((lambda-mu)*distance)))
+
+
+
+
+temp = matrix(c(-1.0, 1.0, -1.0, 1.0, -8.0, 4.0, -2.0, 1.0, 27.0, 9.0, 3.0, 1.0, 64.0, 16.0, 4.0, 1.0), byrow=TRUE, ncol=4)
+temp = Hilbert(4)
+foo = eigen(temp, symmetric=FALSE)
+matrix(as.numeric(foo$vectors), ncol=20) %*% diag(log(as.numeric(foo$values)), 20,20) %*% ginv(matrix(as.numeric(foo$vectors), ncol=20))
+

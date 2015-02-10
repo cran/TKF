@@ -1,0 +1,25 @@
+useDynLib(TKF, .registration = TRUE)
+
+import(methods)
+### Import ordinary functions from other packages
+importFrom(expm, expm.Higham08, logm)
+importFrom(numDeriv, hessian)
+
+### -----------------------------------------------------------------
+### Export non-generic functions
+###
+export(
+  ## ScoringMatrix.R
+  Dayhoffn, 
+  PAMn,
+  AAToInt,
+  AACharacterSet,
+
+  ## TKF91.R
+  TKF91Pair, TKF91,
+
+  ## TKF92.R
+  TKF92Pair, TKF92
+  )
+
+
