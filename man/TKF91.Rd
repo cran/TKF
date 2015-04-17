@@ -79,6 +79,7 @@ Gonnet, G.H., Cohen, M.A., and Benner, S.A. (1992). Exhaustive matching of the e
 }
 \examples{
   \donttest{
+    ## This example is not tested due to running time > 5s
   data(GONNET)
   data(GONNETBF)
   library(seqinr)

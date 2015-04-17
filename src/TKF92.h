@@ -47,7 +47,7 @@ SEXP TKF92LikelihoodFunctionWrapper(SEXP seq1IntR, SEXP seq2IntR, SEXP distanceR
 
 
 /**** TKF92 1D with Brent implementation ****/
-SEXP TKF91LikelihoodFunction1DMain(SEXP seq1IntR, SEXP seq2IntR, 
+SEXP TKF92LikelihoodFunction1DMain(SEXP seq1IntR, SEXP seq2IntR, 
     SEXP muR, SEXP rR,
     SEXP expectedLength, SEXP probMatR, SEXP eqFrequenciesR);
 

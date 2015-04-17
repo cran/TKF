@@ -82,6 +82,10 @@ TKF92 <- function(fasta, mu=NULL, r=NULL, expectedLength=362,
                            dimnames=list(seqnames, seqnames))
   varianceMatrix <- distanceMatrix
   negLoglikelihoodMatrix <- distanceMatrix
+  if(is.null(mu) && is.null(r)){
+    muMatrix <- distanceMatrix
+    rMatrix <- distanceMatrix
+  }
   for(i in 1:(nSeqs-1L)){
     for(j in (i+1L):nSeqs){
       message(seqnames[i], " vs ", seqnames[j])
@@ -92,11 +96,23 @@ TKF92 <- function(fasta, mu=NULL, r=NULL, expectedLength=362,
       varianceMatrix[i,j] <- varianceMatrix[j,i] <- ans["PAMVariance"]
       negLoglikelihoodMatrix[i,j] <- negLoglikelihoodMatrix[j,i] <-
         ans["negLogLikelihood"]
+      if(is.null(mu) && is.null(r)){
+        muMatrix[i,j] <- muMatrix[j,i] <- ans["Mu"]
+        rMatrix[i,j] <- rMatrix[j,i] <- ans["r"]
+      }
     }
   }
-  return(list(distanceMatrix=distanceMatrix,
-              varianceMatrix=varianceMatrix,
-              negLoglikelihoodMatrix=negLoglikelihoodMatrix))
+  if(is.null(mu) && is.null(r)){
+    return(list(distanceMatrix=distanceMatrix,
+                varianceMatrix=varianceMatrix,
+                muMatrix=muMatrix,
+                rMatrix=rMatrix,
+                negLoglikelihoodMatrix=negLoglikelihoodMatrix))
+  }else{
+    return(list(distanceMatrix=distanceMatrix,
+                varianceMatrix=varianceMatrix,
+                negLoglikelihoodMatrix=negLoglikelihoodMatrix))
+  }
 }
 
 

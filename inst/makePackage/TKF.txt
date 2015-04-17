@@ -2,11 +2,12 @@ gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-conf
 gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c matrix.c -o matrix.o
 gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c TKF91.c -o TKF91.o
 gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c TKF92.c -o TKF92.o
-gcc -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/usr/local/lib -o TKF.so MathFunctions.o  matrix.o  TKF91.o TKF92.o -L/usr/local/Cellar/gsl/1.16/lib -lgsl -lgslcblas -L/Users/gtan/src/R-devel/lib -lR -Wl,-framework -Wl,CoreFoundation
+gcc -I/Users/gtan/src/R-devel/include -DNDEBUG  -I/usr/local/include   `gsl-config --cflags` -fPIC  -g -O2  -c TKF92HG.c -o TKF92HG.o
+gcc -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -single_module -multiply_defined suppress -L/usr/local/lib -o TKF.so MathFunctions.o  matrix.o TKF92HG.o TKF91.o TKF92.o -L/usr/local/Cellar/gsl/1.16/lib -lgsl -lgslcblas -L/Users/gtan/src/R-devel/lib -lR -Wl,-framework -Wl,CoreFoundation
 
-R CMD BUILD  TKF
-R CMD INSTALL TKF_0.0.2.tar.gz
-R CMD check --as-cran TKF_0.0.2.tar.gz
+R CMD build  TKF
+R CMD INSTALL TKF_0.0.7.tar.gz
+R CMD check --run-donttest --as-cran TKF_0.0.7.tar.gz
 
 
 ## Linux
@@ -41,7 +42,9 @@ dyn.load("/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/src/TKF.so")
 ## Read fasta
 library(seqinr)
 library(numDeriv)
-fasta <- read.fasta(file="/mnt/biggley/home/gtan/Repos/Bitbucket/TKF/inst/TestData/pair1.fasta" , seqtype="AA", set.attributes=FALSE)
+fasta <- read.fasta(file.path(system.file("extdata", package="TKF"),
+                      "pair1.fasta"),
+                      seqtype="AA", set.attributes=FALSE)
 seq1 <- fasta[[1]]
 seq2 <- fasta[[2]]
 seq1Int <- AAToInt(seq1)
@@ -49,6 +52,12 @@ seq2Int <- AAToInt(seq2)
 ## for the C matrix index
 seq1Int <- seq1Int - 1L
 seq2Int <- seq2Int - 1L
+
+## TKF92HG
+ans <- .Call("TKF92HGLikelihoodFunction5DMainNM", seq1Int, seq2Int, expectedLength=362, substModel=GONNET, substModelBF= GONNETBF)
+ans <- .Call("TKF92HGLikelihoodFunction1DMain", seq1Int, seq2Int, mu=5.920655e-04, r=0.8, ps=1, kf=1.2, expectedLength=362, substModel=GONNET, substModelBF= GONNETBF)
+ans <- .Call("TKF92LikelihoodFunction1DMain", seq1Int, seq2Int, mu=5.920655e-04, r=0.8, expectedLength=362, substModel=GONNET, substModelBF= GONNETBF)
+
 
 ## 1D
 TKF91Pair(seq1, seq2, mu=5.920655e-04, substModel=GONNET, substModelBF=GONNETBF)
@@ -89,4 +98,14 @@ temp = matrix(c(-1.0, 1.0, -1.0, 1.0, -8.0, 4.0, -2.0, 1.0, 27.0, 9.0, 3.0, 1.0,
 temp = Hilbert(4)
 foo = eigen(temp, symmetric=FALSE)
 matrix(as.numeric(foo$vectors), ncol=20) %*% diag(log(as.numeric(foo$values)), 20,20) %*% ginv(matrix(as.numeric(foo$vectors), ncol=20))
+
+## wls
+Dist <- read.table("/Users/gtan/Downloads/p2710.distanceMatrix", header=TRUE, sep="\t")
+rownames(Dist) <- colnames(Dist)
+Dist <- as.matrix(Dist)
+Var = read.table("/Users/gtan/Downloads/p2710.varianceMatrix", header=TRUE, sep="\t")
+rownames(Var) <- colnames(Var)
+Var <- as.matrix(Var)
+tree = optim.phylo.wls(Dist, Var)
+plot(tree, type="unrooted")
 

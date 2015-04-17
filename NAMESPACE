@@ -4,6 +4,10 @@ import(methods)
 ### Import ordinary functions from other packages
 importFrom(expm, expm.Higham08, logm)
 importFrom(numDeriv, hessian)
+importFrom(phytools, optim.phylo.ls, phyloDesign)
+importFrom(ape, rtree, multi2di, di2multi, is.binary.tree, is.rooted, unroot)
+importFrom(phangorn, nni)
+
 
 ### -----------------------------------------------------------------
 ### Export non-generic functions
@@ -15,11 +19,17 @@ export(
   AAToInt,
   AACharacterSet,
 
+  ## MinSqTree.R
+  optim.phylo.wls,
+
   ## TKF91.R
   TKF91Pair, TKF91,
 
   ## TKF92.R
-  TKF92Pair, TKF92
+  TKF92Pair, TKF92,
+
+  ## TKF92HG.R
+  TKF92HGPair,  TKF92HG
   )
 
 

@@ -1,19 +1,20 @@
-\name{TKF92}
-\alias{TKF92}
-\alias{TKF92Pair}
+\name{TKF92HG}
+\alias{TKF92HG}
+\alias{TKF92HGPair}
 
 \title{
-  Evolutionary distance estimation with TKF92 model
+  Evolutionary distance estimation with TKF92 model considering the regional heterogeneity of substitution rates
 }
 \description{
   This function implements the TKF92 model to estimate the pairwise distance
   from protein sequences.
+  An additional simple model of regional heterogeneity of substitution rates is used.
 }
 \usage{
-TKF92(fasta, mu=NULL, r=NULL, expectedLength=362, 
-      substModel, substModelBF)
-TKF92Pair(seq1, seq2, mu=NULL, r=NULL, distance=NULL,
-          expectedLength=362, substModel, substModelBF)
+TKF92HG(fasta, mu=NULL, r=NULL, Ps=NULL, Kf=NULL, expectedLength=362, 
+        substModel, substModelBF)
+TKF92HGPair(seq1, seq2, mu=NULL, r=NULL, Ps=NULL, Kf=NULL, distance=NULL,
+            expectedLength=362, substModel, substModelBF)
 }
 
 \arguments{
@@ -25,21 +26,36 @@ TKF92Pair(seq1, seq2, mu=NULL, r=NULL, distance=NULL,
   \item{mu}{
     A numeric value between 0 and 1 or NULL.
     It is the death rate per normal link in TKF92 model.
-    When it is NULL, a joint estimation of \code{mu}, \code{r} and \code{distance} 
-    will be done.
+    When it is NULL, a joint estimation of \code{mu}, \code{r}, \code{Ps}, \code{Kf} 
+    and \code{distance} will be done.
     When it is given, only the distance will be estimated.
   }
   \item{r}{
     A numeric value between 0 and 1 or NULL.
     It is the success probability of the geometric distribution 
     for modeling the fragment length in TKF92 model.
-    When it is NULL, a joint estimation of \code{mu}, \code{r} and 
-    \code{distance} will be done.
+    When it is NULL, a joint estimation of \code{mu}, \code{r}, \code{Ps}, \code{Kf} 
+    and \code{distance} will be done.
+    When it is given, only the distance will be estimated.
+  }
+  \item{Ps}{
+    A numeric value between 0 and 1 or NULL.
+    It is the equilibrium frequency of slow fragments.
+    Hence the equilibrium frequency of fast fragements is Pf= 1- Ps.
+    When it is NULL, a joint estimation of \code{mu}, \code{r}, \code{Ps}, \code{Kf} 
+    and \code{distance} will be done.
+    When it is given, only the distance will be estimated.
+  }
+  \item{Kf}{
+    A numeric value larger than 1 or NULL.
+    It is the ratio of substitutions rates between fast fragments and slow fragments.
+    When it is NULL, a joint estimation of \code{mu}, \code{r}, \code{Ps}, \code{Kf} 
+    and \code{distance} will be done.
     When it is given, only the distance will be estimated.
   }
   \item{distance}{
     A numeric value: the PAM distance between two protein sequences.
-    When it is given, TKF92Pair only calculates the negative log-likelihood.
+    When it is given, TKF92HGPair only calculates the negative log-likelihood.
   }
   \item{expectedLength}{
     A numeric object: the expected length of input protein sequences.
@@ -63,6 +79,12 @@ TKF92Pair(seq1, seq2, mu=NULL, r=NULL, distance=NULL,
 \details{
   Currently this implementation only supports the normal 20 AAs.
   Missing or Ambiguous characters are not supported.
+  
+  This is a very simple model of substitution rate heterogeneity.
+  This model assumes that there are only two varieties of fragments: 
+  one with relatively fast substitution rates and 
+  the other with slow substitution rates.
+  This model also assumes the fragment size distribution of these two fragments is identical.
 }
 
 \value{
@@ -95,16 +117,16 @@ Gonnet, G.H., Cohen, M.A., and Benner, S.A. (1992). Exhaustive matching of the e
                       "pair1.fasta"),
                       seqtype="AA", set.attributes=FALSE)
   ## 1D estimation: only distance
-  TKF92(fasta, mu=0.0006137344, r=0.7016089061,
-        substModel=GONNET, substModelBF=GONNETBF)
+  TKF92HG(fasta, mu=5.920655e-04, r=0.8, Ps=1, Kf=1.2,
+          substModel=GONNET, substModelBF=GONNETBF)
   
   ## 2D estimation: joint estimation of distance, mu and r
-  TKF92(fasta, substModel=GONNET, substModelBF=GONNETBF)
+  TKF92HG(fasta, substModel=GONNET, substModelBF=GONNETBF)
   
   ## only apply to a pair of sequences
   seq1 <- fasta[[1]]
   seq2 <- fasta[[2]]
-  TKF92Pair(seq1, seq2, mu=0.0006137344, r=0.7016089061,
+  TKF92HGPair(seq1, seq2, mu=5.920655e-04, r=0.8, Ps=1, Kf=1.2,
             substModel=GONNET, substModelBF=GONNETBF)
   }
 }

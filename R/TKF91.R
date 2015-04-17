@@ -75,6 +75,9 @@ TKF91 <- function(fasta, mu=NULL, expectedLength=362,
   distanceMatrix <- matrix(0, ncol=nSeqs, nrow=nSeqs,
                            dimnames=list(seqnames, seqnames))
   varianceMatrix <- distanceMatrix
+  if(is.null(mu)){
+    muMatrix <- distanceMatrix
+  }
   negLoglikelihoodMatrix <- distanceMatrix  
   for(i in 1:(nSeqs-1L)){
     for(j in (i+1L):nSeqs){
@@ -86,11 +89,23 @@ TKF91 <- function(fasta, mu=NULL, expectedLength=362,
       varianceMatrix[i,j] <- varianceMatrix[j,i] <- ans["PAMVariance"]
       negLoglikelihoodMatrix[i,j] <- negLoglikelihoodMatrix[j,i] <- 
         ans["negLogLikelihood"]
+      if(is.null(mu)){
+        muMatrix[i,j] <- muMatrix[j,i] <- ans["Mu"]
+      }
     }
   }
-  return(list(distanceMatrix=distanceMatrix,
-              varianceMatrix=varianceMatrix,
-              negLoglikelihoodMatrix=negLoglikelihoodMatrix))
+  if(is.null(mu)){
+    return(list(distanceMatrix=distanceMatrix,
+                varianceMatrix=varianceMatrix,
+                muMatrix=muMatrix,
+                negLoglikelihoodMatrix=negLoglikelihoodMatrix
+                ))
+  }else{
+    return(list(distanceMatrix=distanceMatrix,
+                varianceMatrix=varianceMatrix,
+                negLoglikelihoodMatrix=negLoglikelihoodMatrix
+                ))
+  }
 }
 
 
